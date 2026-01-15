@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib/core';
 import { StudCdkStack } from '../lib/stud-cdk-stack';
+import { MyPipelineStack } from '../lib/my-pipeline-stack';
 
 const app = new cdk.App();
 new StudCdkStack(app, 'StudCdkStack', {
@@ -18,3 +19,7 @@ new StudCdkStack(app, 'StudCdkStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+
+new MyPipelineStack(app,'MyPipelineStack', {
+  
+})
