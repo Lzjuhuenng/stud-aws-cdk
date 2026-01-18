@@ -2,6 +2,8 @@
 import * as cdk from 'aws-cdk-lib/core';
 import { StudCdkStack } from '../lib/stud-cdk-stack';
 import { MyPipelineStack } from '../lib/my-pipeline-stack';
+import { MyStepFunctionStack } from '../lib/sfn-stack';
+import { Lambda } from 'aws-cdk-lib/aws-ses-actions';
 
 const app = new cdk.App();
 new StudCdkStack(app, 'StudCdkStack', {
@@ -22,4 +24,32 @@ new StudCdkStack(app, 'StudCdkStack', {
 
 new MyPipelineStack(app,'MyPipelineStack', {
   
-})
+});
+
+const environments = [
+  { 
+    id: 'UAT', 
+    account: 'XXXXXXX', 
+    region: 'ap-northeast-1',
+    lambdaArn: 'arn:aws:lambda:ap-northeast-1:XXX:function:hello-lambda'
+  },
+  { 
+    id: 'STG', 
+    account: 'XXXXXX', 
+    region: 'ap-northeast-1',
+    lambdaArn: 'arn:aws:lambda:ap-northeast-1:XXXXX:function:CdkHelloWorldLambda' 
+  },
+  // { 
+  //   id: 'PRD', 
+  //   account: 'XXXX', 
+  //   region: 'us-east-1',
+  //   lambdaArn: ''
+  // },
+];
+
+for (const env of environments) {
+  new MyStepFunctionStack(app, `SfnStack-${env.id}`, {
+    env: { account: env.account, region: env.region },
+    lambdaArn: env.lambdaArn
+  });
+}

@@ -1,0 +1,30 @@
+# resources/state-machine.yaml
+Comment: "A template for cross-environment Step Function"
+StartAt: ProcessDataTask
+States:
+  ProcessDataTask:
+    Type: Task
+    # 使用 ${} 语法，方便 CDK 的 definitionSubstitutions 替换
+    Resource: "${myLambdaArn}"
+    Retry:
+      - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+        IntervalSeconds: 2
+        MaxAttempts: 3
+        BackoffRate: 2.0
+    Next: CheckStatus
+
+  CheckStatus:
+    Type: Choice
+    Choices:
+      - Variable: "$.status"
+        StringEquals: "SUCCESS"
+        Next: FinalSuccess
+    Default: JobFailed
+
+  FinalSuccess:
+    Type: Succeed
+
+  JobFailed:
+    Type: Fail
+    Error: "JobFailedError"
+    Cause: "The data processing failed."
