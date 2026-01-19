@@ -108,7 +108,6 @@ export class MyPipelineStack extends cdk.Stack {
       ],
     });
 
-
     const targetLambda = new Function(this, "PipelineTargetLambda", {
       runtime: lambda.Runtime.PYTHON_3_14,
       handler: "lambda_function.handler",
@@ -122,6 +121,11 @@ export class MyPipelineStack extends cdk.Stack {
 
     deployBucket.grantReadWrite(targetLambda)
     
+    targetLambda.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['codepipeline:PutJobSuccessResult', 'codepipeline:PutJobFailureResult'],
+      resources: ['*']
+    }));
+
     // 4. Invoke ステージ (Lambdaを実行)
     pipeline.addStage({
       stageName: 'InvokeLambda',
@@ -132,5 +136,6 @@ export class MyPipelineStack extends cdk.Stack {
         }),
       ],
     });
+
   }
 }

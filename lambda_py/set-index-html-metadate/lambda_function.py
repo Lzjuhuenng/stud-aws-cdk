@@ -17,6 +17,9 @@ METADATA_PATCH = {
 }
 
 def handler(event, context):
+    cp = boto3.client("codepipeline")
+    job_id = event['CodePipeline.job']['id']
+
     if not BUCKET_NAME or not TARGET_KEY:
         raise RuntimeError("BUCKET_NAME and TARGET_KEY must be set")
 
@@ -92,10 +95,19 @@ def handler(event, context):
             "copy_result": resp.get("CopyObjectResult", {}),
         })
 
+        cp.put_job_success_result(jobId=job_id)
+        
         return {"ok": True, "bucket": BUCKET_NAME, "key": TARGET_KEY}
 
     except ClientError as e:
         code = e.response.get("Error", {}).get("Code")
         msg = e.response.get("Error", {}).get("Message")
         print(f"Failed: {code} - {msg}")
+        cp.put_job_failure_result(
+            jobId=job_id,
+            failureDetails={
+                'type': 'JobFailed',
+                'message': str(e)
+            }
+        )
         raise
